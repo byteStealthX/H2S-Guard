@@ -14,6 +14,7 @@ import {
   Download,
   Filter,
 } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
 import { adminWorkers, adminReadings, adminIncidents, sevenDayTrend, departmentStats } from '../../data/adminMockData';
 
 interface OverviewSectionProps {
@@ -27,9 +28,27 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   onOpenIncidentModal,
   addToast,
 }) => {
+  const { readings, worker } = useApp();
   const [readingFilter, setReadingFilter] = useState<'ALL' | 'ATTENTION' | 'HIGH_EXPOSURE'>('ALL');
 
-  const filteredReadings = adminReadings.filter((r) => {
+  const liveReadings = readings
+    .filter((reading) => !adminReadings.some((adminReading) => adminReading.id === reading.id))
+    .map((reading) => ({
+      id: reading.id,
+      workerId: reading.workerId,
+      workerName: reading.workerName,
+      department: reading.workerId === worker.id ? worker.department : 'Operations',
+      bandId: reading.bandId,
+      exposure: reading.exposureDosePpmH,
+      confidence: reading.confidencePct,
+      timestamp: reading.timestamp,
+      status: reading.status === 'CRITICAL_EXPOSURE' ? 'HIGH_EXPOSURE' : reading.status === 'WARNING' || reading.status === 'SAFE' ? 'ATTENTION' : reading.status,
+      location: reading.location,
+      modelVersion: 'H2S-COLOR-v1.2',
+    }));
+  const displayReadings = [...liveReadings, ...adminReadings];
+
+  const filteredReadings = displayReadings.filter((r) => {
     if (readingFilter === 'ATTENTION') return r.status === 'ATTENTION';
     if (readingFilter === 'HIGH_EXPOSURE') return r.status === 'HIGH_EXPOSURE';
     return true;
@@ -205,7 +224,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
 
                 return (
                   <div key={idx} className="flex flex-col items-center gap-1.5 h-full justify-end group">
-                    <div className="w-full max-w-[36px] bg-stone-100 rounded-xl overflow-hidden flex flex-col justify-end h-full transition-all group-hover:scale-105">
+                    <div className="w-full max-w-9 bg-stone-100 rounded-xl overflow-hidden flex flex-col justify-end h-full transition-all group-hover:scale-105">
                       {item.high > 0 && (
                         <div
                           style={{ height: `${highPct}%` }}
@@ -333,7 +352,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                       <h4 className="text-xs font-bold text-[#1C1917] group-hover:text-[#E63946] transition-colors">
                         {inc.workerName}
                       </h4>
-                      <p className="text-[11px] text-stone-600 font-medium truncate max-w-[180px]">
+                      <p className="text-[11px] text-stone-600 font-medium truncate max-w-45">
                         {inc.location}
                       </p>
                     </div>
@@ -383,7 +402,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 readingFilter === 'ALL' ? 'bg-white text-[#1C1917] shadow-sm' : 'hover:text-[#1C1917]'
               }`}
             >
-              All Scans ({adminReadings.length})
+              All Scans ({displayReadings.length})
             </button>
             <button
               onClick={() => setReadingFilter('ATTENTION')}

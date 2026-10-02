@@ -75,7 +75,9 @@ export const CameraScannerModal: React.FC = () => {
   const { isScannerOpen, closeScanner, addReading, addToast, setActiveTab, worker, band, employees, scannedEmployee, setScannedEmployee, scanEmployeeQR, currentRole } = useApp();
 
   type ScanMode = 'dosimeter' | 'employee_qr';
+  type AnalysisSource = 'demo' | 'live';
   const [scanMode, setScanMode] = useState<ScanMode>('dosimeter');
+  const [analysisSource, setAnalysisSource] = useState<AnalysisSource>('demo');
   const [qrInput, setQrInput] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -141,6 +143,7 @@ export const CameraScannerModal: React.FC = () => {
       setWhyOpen(false);
       setCustomAnalysis(null);
       setScanMode('dosimeter');
+      setAnalysisSource('demo');
       setQrInput('');
       setShowProfileModal(false);
     } else {
@@ -215,6 +218,18 @@ export const CameraScannerModal: React.FC = () => {
       setCustomAnalysis(result);
     } catch (err) {
       console.error('Error performing color analysis:', err);
+      setCustomAnalysis({
+        rawRgb: { r: 0, g: 0, b: 0 },
+        colorShiftHex: '#000000',
+        baselineColorHex: '#F5EECE',
+        deltaE: 0,
+        exposureDosePpmH: 0,
+        exposureRatePpmH: 0,
+        confidencePct: 0,
+        status: 'INVALID',
+        qualityScorePct: 0,
+        shiftDurationMinutes: 0,
+      });
     }
   };
 
@@ -226,6 +241,7 @@ export const CameraScannerModal: React.FC = () => {
     reader.onload = async (evt) => {
       const dataUrl = evt.target?.result as string;
       if (dataUrl) {
+        setAnalysisSource('live');
         setScreen('analysis');
         setAnalysisProgress(0);
         await processImageAnalysis(dataUrl);
@@ -247,8 +263,8 @@ export const CameraScannerModal: React.FC = () => {
   const handleCapture = async () => {
     if (errorState) return;
 
-    // If video element is active and playing, capture frame to canvas
-    if (videoRef.current && hasWebcam) {
+    // Demo scans are deterministic and must never be replaced by a camera frame.
+    if (analysisSource === 'live' && videoRef.current && hasWebcam) {
       try {
         const video = videoRef.current;
         const canvas = document.createElement('canvas');
@@ -261,10 +277,35 @@ export const CameraScannerModal: React.FC = () => {
           await processImageAnalysis(dataUrl);
         }
       } catch (e) {
-        console.warn('Webcam capture fallback to preset scenario:', e);
+        console.warn('Webcam capture failed:', e);
+        setCustomAnalysis({
+          rawRgb: { r: 0, g: 0, b: 0 },
+          colorShiftHex: '#000000',
+          baselineColorHex: '#F5EECE',
+          deltaE: 0,
+          exposureDosePpmH: 0,
+          exposureRatePpmH: 0,
+          confidencePct: 0,
+          status: 'INVALID',
+          qualityScorePct: 0,
+          shiftDurationMinutes: 0,
+        });
       }
-    } else {
+    } else if (analysisSource === 'demo') {
       setCustomAnalysis(null); // use selected preset
+    } else {
+      setCustomAnalysis({
+        rawRgb: { r: 0, g: 0, b: 0 },
+        colorShiftHex: '#000000',
+        baselineColorHex: '#F5EECE',
+        deltaE: 0,
+        exposureDosePpmH: 0,
+        exposureRatePpmH: 0,
+        confidencePct: 0,
+        status: 'INVALID',
+        qualityScorePct: 0,
+        shiftDurationMinutes: 0,
+      });
     }
 
     setScreen('analysis');
@@ -347,8 +388,8 @@ export const CameraScannerModal: React.FC = () => {
       {screen === 'camera' && (
         <div className="flex-1 flex flex-col">
           {/* Top Bar */}
-          <div className="flex items-center justify-between px-4 py-3 sm:px-5 bg-gradient-to-b from-stone-950 to-transparent text-white z-20 relative">
-            <button onClick={closeScanner} className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer">
+          <div className="flex items-center justify-between px-4 py-3 sm:px-5 bg-linear-to-b from-stone-950 to-transparent text-white z-20 relative">
+            <button aria-label="Close scanner" onClick={closeScanner} className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="text-center">
@@ -384,12 +425,14 @@ export const CameraScannerModal: React.FC = () => {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 title="Upload image"
+                aria-label="Upload image"
                 className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
               >
                 <Upload className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setFlashOn(f => !f)}
+                aria-label={flashOn ? 'Turn flash off' : 'Turn flash on'}
                 className={`p-2.5 rounded-full transition-colors cursor-pointer ${flashOn ? 'bg-amber-400 text-stone-950' : 'bg-white/10 text-white'}`}
               >
                 <Zap className="w-5 h-5" />
@@ -405,7 +448,7 @@ export const CameraScannerModal: React.FC = () => {
                   <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
                   <div className="absolute inset-0 bg-stone-900 flex flex-col items-center justify-center z-30">
-                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#E63946_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#E63946_1px,transparent_1px)] bg-size-[20px_20px] pointer-events-none" />
                     <Camera className="w-12 h-12 text-stone-500 mb-3" />
                     <p className="text-stone-400 text-xs font-semibold mb-5 px-8 text-center max-w-xs">
                       Live view requires HTTPS. Tap below to open your genuine mobile camera.
@@ -442,7 +485,7 @@ export const CameraScannerModal: React.FC = () => {
                   <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-[#E63946] rounded-br-2xl" />
 
                   {!errorState && (
-                    <div className="absolute inset-x-3 h-0.5 bg-gradient-to-r from-transparent via-[#E63946]/80 to-transparent animate-pulse top-1/2" />
+                    <div className="absolute inset-x-3 h-0.5 bg-linear-to-r from-transparent via-[#E63946]/80 to-transparent animate-pulse top-1/2" />
                   )}
 
                   {/* Band Preview */}
@@ -490,7 +533,7 @@ export const CameraScannerModal: React.FC = () => {
               </div>
 
               {/* Bottom Controls */}
-              <div className="bg-gradient-to-t from-stone-950 to-stone-950/80 px-4 pt-3 pb-4 flex flex-col items-center gap-3">
+              <div className="bg-linear-to-t from-stone-950 to-stone-950/80 px-4 pt-3 pb-4 flex flex-col items-center gap-3">
                 {/* Error state toggles */}
                 <div className="flex items-center gap-1.5 overflow-x-auto w-full pb-0.5 text-[10px]">
                   <span className="text-stone-500 font-bold shrink-0">Test:</span>
@@ -513,12 +556,22 @@ export const CameraScannerModal: React.FC = () => {
                 {/* Shutter & demo preset row */}
                 <div className="flex items-center justify-center gap-4 w-full">
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-[10px] text-stone-500 font-bold">Demo Scan</span>
+                    <div className="flex items-center gap-1 rounded-full bg-stone-800 p-0.5 text-[10px] font-bold">
+                      <button
+                        onClick={() => setAnalysisSource('demo')}
+                        className={`px-2 py-0.5 rounded-full cursor-pointer ${analysisSource === 'demo' ? 'bg-[#E63946] text-white' : 'text-stone-400'}`}
+                      >Demo</button>
+                      <button
+                        onClick={() => setAnalysisSource('live')}
+                        className={`px-2 py-0.5 rounded-full cursor-pointer ${analysisSource === 'live' ? 'bg-[#E63946] text-white' : 'text-stone-400'}`}
+                      >Live</button>
+                    </div>
                     <div className="flex gap-1">
                       {presetScanScenarios.map((sc, idx) => (
                         <button
                           key={idx}
-                          onClick={() => setSelectedPresetIndex(idx)}
+                          onClick={() => { setSelectedPresetIndex(idx); setAnalysisSource('demo'); setCustomAnalysis(null); }}
+                          aria-label={`Select ${sc.status} demo preset`}
                           className={`px-2 py-0.5 text-[10px] font-bold rounded-full cursor-pointer transition-colors ${
                             selectedPresetIndex === idx ? 'bg-[#E63946] text-white' : 'bg-stone-800 text-stone-400'
                           }`}
@@ -553,7 +606,7 @@ export const CameraScannerModal: React.FC = () => {
           ) : (
             /* ── EMPLOYEE QR SCAN MODE ── */
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 text-white space-y-6">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#590D22] to-[#E63946] flex items-center justify-center shadow-lg">
+              <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-[#590D22] to-[#E63946] flex items-center justify-center shadow-lg">
                 <QrCode className="w-10 h-10 text-white" />
               </div>
 
@@ -575,7 +628,7 @@ export const CameraScannerModal: React.FC = () => {
 
                 <button
                   onClick={handleEmployeeQrScan}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#590D22] to-[#E63946] text-white font-bold text-sm shadow-lg shadow-[#E63946]/20 hover:shadow-xl transition-all cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-linear-to-r from-[#590D22] to-[#E63946] text-white font-bold text-sm shadow-lg shadow-[#E63946]/20 hover:shadow-xl transition-all cursor-pointer"
                 >
                   Look Up Employee Profile
                 </button>
@@ -591,7 +644,7 @@ export const CameraScannerModal: React.FC = () => {
                       onClick={() => { setQrInput(emp.employeeId); scanEmployeeQR(emp.employeeId); setShowProfileModal(true); }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-stone-800/60 hover:bg-stone-800 transition-colors text-left cursor-pointer border border-stone-700/50"
                     >
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#590D22] to-[#E63946] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-linear-to-br from-[#590D22] to-[#E63946] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                         {emp.name.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div className="flex-1 min-w-0">

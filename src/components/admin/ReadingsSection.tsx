@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Download, Filter, Eye, CheckCircle2, AlertTriangle, Flame, ShieldAlert } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
 import { adminReadings, AdminReading } from '../../data/adminMockData';
 
 interface ReadingsSectionProps {
@@ -7,11 +8,34 @@ interface ReadingsSectionProps {
 }
 
 export const ReadingsSection: React.FC<ReadingsSectionProps> = ({ addToast }) => {
+  const { readings, worker } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedReading, setSelectedReading] = useState<AdminReading | null>(null);
 
-  const filtered = adminReadings.filter((r) => {
+  const liveReadings: AdminReading[] = readings
+    .filter((reading) => !adminReadings.some((adminReading) => adminReading.id === reading.id))
+    .map((reading) => ({
+      id: reading.id,
+      workerId: reading.workerId,
+      workerName: reading.workerName,
+      department: reading.workerId === worker.id ? worker.department : 'Operations',
+      bandId: reading.bandId,
+      exposure: reading.exposureDosePpmH,
+      confidence: reading.confidencePct,
+      timestamp: reading.timestamp,
+      status: reading.status === 'CRITICAL_EXPOSURE'
+        ? 'HIGH_EXPOSURE'
+        : reading.status === 'WARNING'
+        ? 'ATTENTION'
+        : reading.status === 'SAFE'
+        ? 'NORMAL'
+        : reading.status,
+      location: reading.location,
+      modelVersion: 'H2S-COLOR-v1.2',
+    }));
+
+  const filtered = [...liveReadings, ...adminReadings].filter((r) => {
     const matchesSearch =
       r.workerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.bandId.toLowerCase().includes(searchTerm.toLowerCase()) ||

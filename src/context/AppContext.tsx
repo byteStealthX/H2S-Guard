@@ -229,7 +229,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setWorker((prev) => ({
         ...prev,
         accumulatedShiftPpmH: parseFloat((prev.accumulatedShiftPpmH + fullReading.exposureDosePpmH).toFixed(1)),
-        currentSafetyStatus: fullReading.status === 'HIGH_EXPOSURE' ? 'CRITICAL_EXPOSURE' : fullReading.status === 'ATTENTION' ? 'WARNING' : prev.currentSafetyStatus,
+        currentSafetyStatus: fullReading.status === 'HIGH_EXPOSURE' ? 'CRITICAL_EXPOSURE' : fullReading.status === 'ATTENTION' ? 'WARNING' : 'NORMAL',
       }));
 
       setEmployees((prev) =>
@@ -238,7 +238,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ? {
                 ...emp,
                 accumulatedShiftPpmH: parseFloat((emp.accumulatedShiftPpmH + fullReading.exposureDosePpmH).toFixed(1)),
-                currentSafetyStatus: fullReading.status === 'HIGH_EXPOSURE' ? 'CRITICAL_EXPOSURE' : fullReading.status === 'ATTENTION' ? 'WARNING' : emp.currentSafetyStatus,
+                currentSafetyStatus: fullReading.status === 'HIGH_EXPOSURE' ? 'CRITICAL_EXPOSURE' : fullReading.status === 'ATTENTION' ? 'WARNING' : 'NORMAL',
               }
             : emp
         )
