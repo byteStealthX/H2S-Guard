@@ -1,103 +1,116 @@
 # H2S Guard
 
-H2S Guard is a prototype industrial safety monitoring application for passive colorimetric H2S dosimeter wristbands. It provides worker scanning, exposure analysis, reading history, alerts, supervisor monitoring, administration screens, reports, and local demo data persistence.
+Prototype industrial safety monitoring for passive colorimetric H2S dosimeter wristbands.
 
-The product name is **H2S Guard**. The GitHub repository uses the name `H2S-Guard` or `H2S-Guard-1` when a second repository is required because GitHub repository names cannot contain spaces.
+H2S Guard connects a worker scan to exposure analysis, saved readings, alerts, supervisor monitoring, and admin telemetry. It is designed for demonstration and workflow validation; it is not a certified laboratory or occupational exposure instrument.
 
-## Product Flow
+## What It Includes
+
+- Worker home, exposure history, alerts, and profile views.
+- Deterministic demo scanning for Normal, Attention, High Exposure, and Invalid Reading scenarios.
+- Separate Demo and Live scanner modes.
+- Live camera capture and image upload analysis.
+- Employee QR lookup and profile inspection.
+- Exposure results with dose, confidence, duration, timestamp, optical color data, and calibration metadata.
+- Local browser persistence for readings, alerts, workers, notifications, role, theme, and audit records.
+- Supervisor monitoring and escalation workflows.
+- Admin sections for overview, workers, dosimeters, readings, incidents, analytics, reports, batches, calibration, audit logs, alert rules, and settings.
+- Responsive navigation and persisted light/dark theme support.
+- Lucide React icons for the web interface.
+
+## Demo Workflow
 
 ```text
 Worker
-  -> Dosimeter scan
-  -> Color or demo analysis
-  -> Exposure status
+  -> Select Scan Dosimeter
+  -> Choose Demo or Live mode
+  -> Analyze the dosimeter
+  -> Review exposure result
   -> Save reading
-  -> History and alerts
-  -> Supervisor monitoring
-  -> Admin readings, workers, batches, reports, and settings
+  -> Review History and Alerts
+  -> Switch to Supervisor monitoring
+  -> Inspect Admin readings and reports
 ```
 
-## Features
+### Deterministic Demo Scan
 
-- Worker home, exposure history, alerts, and profile views.
-- Deterministic demo scan presets: Normal, Attention, High Exposure, and Invalid Reading.
-- Explicit Demo and Live scanner modes.
-- Live camera capture and image upload analysis.
-- QR-based employee lookup and profile viewing.
-- Exposure result cards with dose, confidence, duration, timestamp, color shift, and calibration details.
-- Local reading persistence using browser storage.
-- Automatic alert creation for high exposure and attention readings.
-- Supervisor monitoring dashboard and escalation views.
-- Admin overview, workers, dosimeters, readings, incidents, analytics, reports, batches, calibration, audit logs, alert engine, and settings sections.
-- Light and dark themes with persisted theme preference.
-- Responsive web layout with mobile navigation.
-- Lucide React icons throughout the web interface.
+1. Start the web app and open **Scan Dosimeter**.
+2. Keep the scanner in **Demo** mode.
+3. Select **High Exposure**.
+4. Press the capture button.
+5. Confirm the result is **HIGH EXPOSURE** and `42.8 ppm·h`.
+6. Save the reading.
+7. Open Alerts and confirm the matching critical alert.
+8. Open History and confirm the new reading.
+9. Switch to Supervisor and Admin views to inspect the same reading.
+
+Demo mode uses the selected preset even when a webcam is available. A camera frame cannot overwrite a selected demo result.
+
+### Live Camera Mode
+
+Live mode analyzes a camera frame or uploaded image. Camera access generally requires HTTPS and browser permission. If the image cannot be analyzed reliably, the application returns `INVALID` instead of silently falling back to `NORMAL`.
 
 ## Technology
 
-- React 19 and TypeScript
-- Vite and Tailwind CSS v4
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS v4
 - Lucide React
-- Expo Router and React Native screens
-- jsPDF and AutoTable for prototype report generation
+- Expo Router and React Native
+- jsPDF and AutoTable
 - Browser localStorage for prototype persistence
 
 ## Requirements
 
-- Node.js 20 or newer recommended.
-- npm.
-- A modern browser for the web application.
-- Camera access and HTTPS for live camera capture in deployed environments. Demo mode works without a camera.
+- Node.js 20 or newer recommended
+- npm
+- Modern web browser
+- HTTPS and camera permission for live camera scanning in deployed environments
 
-## Install
+## Install and Run
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-## Run the Web App
+Start the web application:
 
 ```bash
 npm run dev
 ```
 
-Open the local URL printed by Vite, normally `http://localhost:5173`.
+Open the local URL printed by Vite. The default URL is usually `http://localhost:5173`.
 
-## Build and Lint
+## Validation Commands
+
+Production build:
 
 ```bash
 npm run build
+```
+
+Lint:
+
+```bash
 npm run lint
 ```
 
-The lint configuration reports existing unused-import and React refresh warnings. The production TypeScript and Vite build must complete successfully.
+Preview the production build:
 
-## Demo Validation Flow
+```bash
+npm run preview
+```
 
-1. Open the app in Worker view.
-2. Select **Scan Dosimeter**.
-3. Keep **Demo** mode selected.
-4. Select **High Exposure**.
-5. Press the capture button.
-6. Confirm the result is **HIGH EXPOSURE** with the selected preset dose.
-7. Save the reading.
-8. Open Alerts and confirm the matching critical alert.
-9. Open History and confirm the new reading.
-10. Switch to Supervisor and confirm the live reading in monitoring.
-11. Switch to Admin and inspect Overview and Readings.
-12. Toggle dark mode and verify headings and controls remain readable.
+The project currently reports existing lint warnings for unused imports and React refresh guidance. The TypeScript and Vite production build should complete successfully.
 
-### Demo and Live Modes
+## Prototype Calibration
 
-Demo mode always uses the selected deterministic preset. A webcam frame cannot overwrite a demo result.
+The colorimetric calculation is prototype/mock logic. It must not be treated as a regulatory limit, laboratory result, certification, or accuracy claim.
 
-Live mode uses the camera or uploaded image for color analysis. If a usable image cannot be analyzed, the result is explicitly `INVALID` rather than silently becoming `NORMAL`.
-
-## Prototype Calibration Logic
-
-The colorimetric calculation is prototype/mock calibration logic. It must not be interpreted as laboratory certification, occupational exposure certification, or regulatory compliance certification.
-
-The current prototype uses:
+The current implementation uses:
 
 ```text
 dose = 0.85 * deltaE^1.15
@@ -106,7 +119,15 @@ ATTENTION: dose <= 40
 HIGH_EXPOSURE: dose > 40
 ```
 
-Invalid optical readings are represented separately and do not produce a quantitative dose.
+Invalid optical readings are stored separately and do not produce a quantitative dose.
+
+## Data and Reset
+
+The web prototype persists data in browser localStorage. The stored data includes readings, alerts, workers, notifications, selected role, theme preference, and audit records.
+
+Use **Reset Demo Environment** in the demo controls to restore the initial prototype data.
+
+This repository does not include a production backend, multi-user synchronization, hosted authentication, or regulatory compliance certification service.
 
 ## Project Structure
 
@@ -125,18 +146,10 @@ src/types/                  Shared TypeScript models
 src/utils/                  Color analysis, PDF, and cryptographic helpers
 ```
 
-## Data and Reset
+## Application Identity
 
-The prototype stores readings, alerts, workers, notifications, role, theme, and audit data in browser localStorage. Use **Reset Demo Environment** in the demo controls to restore the initial prototype state.
-
-This project does not include a production backend, multi-user synchronization, or a regulatory compliance certification service.
-
-## Repository
-
-The existing repository is:
-
-```text
-https://github.com/Kart01-dev/H2S-Guard
-```
-
-The Expo application metadata is defined in `app.json` with display name `H2S Guard`, slug `h2s-guard`, and package identifier `com.h2sguard.app`.
+- Product name: **H2S Guard**
+- Expo display name: `H2S Guard`
+- Expo slug: `h2s-guard`
+- Android and iOS bundle identifier: `com.h2sguard.app`
+- GitHub repository: https://github.com/byteStealthX/H2S-Guard
