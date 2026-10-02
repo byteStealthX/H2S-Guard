@@ -1,10 +1,10 @@
-# H2S Guard
+# H2S Guard 🛡️
 
 Prototype industrial safety monitoring for passive colorimetric H2S dosimeter wristbands.
 
 H2S Guard connects a worker scan to exposure analysis, saved readings, alerts, supervisor monitoring, and admin telemetry. It is designed for demonstration and workflow validation; it is not a certified laboratory or occupational exposure instrument.
 
-## What It Includes
+## What It Includes ✨
 
 - Worker home, exposure history, alerts, and profile views.
 - Deterministic demo scanning for Normal, Attention, High Exposure, and Invalid Reading scenarios.
@@ -18,7 +18,7 @@ H2S Guard connects a worker scan to exposure analysis, saved readings, alerts, s
 - Responsive navigation and persisted light/dark theme support.
 - Lucide React icons for the web interface.
 
-## Demo Workflow
+## Demo Workflow 🔄
 
 ```text
 Worker
@@ -32,25 +32,25 @@ Worker
   -> Inspect Admin readings and reports
 ```
 
-### Deterministic Demo Scan
+### Deterministic Demo Scan 🎯
 
-1. Start the web app and open **Scan Dosimeter**.
-2. Keep the scanner in **Demo** mode.
-3. Select **High Exposure**.
-4. Press the capture button.
-5. Confirm the result is **HIGH EXPOSURE** and `42.8 ppm·h`.
-6. Save the reading.
-7. Open Alerts and confirm the matching critical alert.
-8. Open History and confirm the new reading.
-9. Switch to Supervisor and Admin views to inspect the same reading.
+1. 🚀 Start the web app and open **Scan Dosimeter**.
+2. 🎛️ Keep the scanner in **Demo** mode.
+3. 🔴 Select **High Exposure**.
+4. 📷 Press the capture button.
+5. ✅ Confirm the result is **HIGH EXPOSURE** and `42.8 ppm·h`.
+6. 💾 Save the reading.
+7. 🚨 Open Alerts and confirm the matching critical alert.
+8. 📋 Open History and confirm the new reading.
+9. 👷 Switch to Supervisor and Admin views to inspect the same reading.
 
 Demo mode uses the selected preset even when a webcam is available. A camera frame cannot overwrite a selected demo result.
 
-### Live Camera Mode
+### Live Camera Mode 📸
 
 Live mode analyzes a camera frame or uploaded image. Camera access generally requires HTTPS and browser permission. If the image cannot be analyzed reliably, the application returns `INVALID` instead of silently falling back to `NORMAL`.
 
-## Technology
+## Technology 🧰
 
 - React 19
 - TypeScript
@@ -61,14 +61,14 @@ Live mode analyzes a camera frame or uploaded image. Camera access generally req
 - jsPDF and AutoTable
 - Browser localStorage for prototype persistence
 
-## Requirements
+## Requirements 📦
 
 - Node.js 20 or newer recommended
 - npm
 - Modern web browser
 - HTTPS and camera permission for live camera scanning in deployed environments
 
-## Install and Run
+## Install and Run ▶️
 
 Install dependencies:
 
@@ -84,7 +84,7 @@ npm run dev
 
 Open the local URL printed by Vite. The default URL is usually `http://localhost:5173`.
 
-## Validation Commands
+## Validation Commands ✅
 
 Production build:
 
@@ -106,7 +106,7 @@ npm run preview
 
 The project currently reports existing lint warnings for unused imports and React refresh guidance. The TypeScript and Vite production build should complete successfully.
 
-## Prototype Calibration
+## Prototype Calibration 🧪
 
 The colorimetric calculation is prototype/mock logic. It must not be treated as a regulatory limit, laboratory result, certification, or accuracy claim.
 
@@ -121,7 +121,7 @@ HIGH_EXPOSURE: dose > 40
 
 Invalid optical readings are stored separately and do not produce a quantitative dose.
 
-## Data and Reset
+## Data and Reset ♻️
 
 The web prototype persists data in browser localStorage. The stored data includes readings, alerts, workers, notifications, selected role, theme preference, and audit records.
 
@@ -129,7 +129,7 @@ Use **Reset Demo Environment** in the demo controls to restore the initial proto
 
 This repository does not include a production backend, multi-user synchronization, hosted authentication, or regulatory compliance certification service.
 
-## Project Structure
+## Project Structure 🗂️
 
 ```text
 app/                         Expo Router mobile screens
@@ -146,7 +146,7 @@ src/types/                  Shared TypeScript models
 src/utils/                  Color analysis, PDF, and cryptographic helpers
 ```
 
-## Application Identity
+## Application Identity 🏷️
 
 - Product name: **H2S Guard**
 - Expo display name: `H2S Guard`
